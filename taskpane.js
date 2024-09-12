@@ -150,7 +150,6 @@ async function insertTitlePage() {
       );
 
       // Position mountain image
-      mountainImage.wrap.allowOverlap = true;
       mountainImage.wrap.type = Word.WrapType.behind;
       mountainImage.left = -71.05; // -9.84 inches in points
       mountainImage.top = -1.872; // -0.026 inches in points
