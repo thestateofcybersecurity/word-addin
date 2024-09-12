@@ -39,37 +39,32 @@ async function applyCustomStyles() {
     await context.sync();
 
     if (paragraphs.items.length > 0) {
-      // Apply primary header style (Source Sans Pro Black, 40pt, Midnight Blue, ALL CAPS)
-      const headerText = paragraphs.items[0].text.toUpperCase();  // Transform to uppercase
-      paragraphs.items[0].insertText(headerText, Word.InsertLocation.replace);
+      // Apply primary header style
       paragraphs.items[0].font.set({
         name: "Source Sans Pro Black",
         size: 40,
         color: "#002B49",  // Midnight Blue
         bold: true
       });
+      paragraphs.items[0].text = paragraphs.items[0].text.toUpperCase();
 
-      // Apply sub-header style (Source Sans Pro Bold, 12-14pt, Midnight Blue, ALL CAPS)
+      // Apply sub-header style
       if (paragraphs.items.length > 1) {
-        const subHeaderText = paragraphs.items[1].text.toUpperCase();  // Transform to uppercase
-        paragraphs.items[1].insertText(subHeaderText, Word.InsertLocation.replace);
         paragraphs.items[1].font.set({
           name: "Source Sans Pro Bold",
           size: 14,
           color: "#002B49",  // Midnight Blue
-          bold: true,
-          allCaps: true,
-          kerning: 100
+          bold: true
         });
+        paragraphs.items[1].text = paragraphs.items[1].text.toUpperCase();
       }
 
-      // Apply body text style (Montserrat, 10pt, black)
+      // Apply body text style
       for (let i = 2; i < paragraphs.items.length; i++) {
         paragraphs.items[i].font.set({
           name: "Montserrat",
           size: 10,
-          color: "#000000",  // Black
-          justify: true
+          color: "#000000"  // Black
         });
       }
     }
@@ -183,10 +178,12 @@ async function insertHeaderFooter() {
 // Function to generate table of contents
 async function insertTableOfContents() {
   await Word.run(async (context) => {
-    context.document.body.insertTableOfContents(Word.InsertLocation.start, {
-      headingStyleCount: 3,
-      rightAlignPageNumbers: true,
-      useHyperlinks: true,
+    const range = context.document.getSelection();
+    range.insertText("Table of Contents will be inserted here.", Word.InsertLocation.replace);
+    range.font.set({
+      name: "Montserrat",
+      size: 14,
+      bold: true
     });
     await context.sync();
   });
