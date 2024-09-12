@@ -136,14 +136,26 @@ async function insertExcelTable() {
 
 async function insertTitlePage() {
   await Word.run(async (context) => {
-    const body = context.document.body;
+    const document = context.document;
+    const body = document.body;
 
-    // Insert company logo
-    await insertImage(context, "https://thestateofcybersecurity.github.io/word-addin/assets/logo.png", 150, 50, Word.InsertLocation.start);
+    // Clear existing content
+    body.clear();
 
-    // Insert mountain image
-    await insertImage(context, "https://thestateofcybersecurity.github.io/word-addin/assets/mountains.png", 150, 50, Word.InsertLocation.start);
-    
+    // Insert mountain image as full page and send to back
+    const mountainImage = await insertImage(context, "https://thestateofcybersecurity.github.io/word-addin/assets/mountains.png", null, null, Word.InsertLocation.start);
+    mountainImage.width = '100%';
+    mountainImage.height = '100%';
+    mountainImage.lockAspectRatio = false;
+    mountainImage.sendToBack();
+
+    // Insert company logo centered above the title
+    const logoImage = await insertImage(context, "https://thestateofcybersecurity.github.io/word-addin/assets/logo.png", 150, 50, Word.InsertLocation.after);
+    logoImage.alignment = Word.Alignment.centered;
+
+    // Insert blank paragraph for spacing
+    body.insertParagraph("", Word.InsertLocation.end);
+
     // Insert title text
     const title = body.insertParagraph("Maturity Assessment", Word.InsertLocation.end);
     title.font.set({
@@ -152,7 +164,7 @@ async function insertTitlePage() {
       color: "#002B49",
       bold: true
     });
-    title.alignment = Word.Alignment.center;
+    title.alignment = Word.Alignment.centered;
 
     // Insert other title page elements
     const preparedFor = body.insertParagraph("Prepared for: [Client Name]", Word.InsertLocation.end);
@@ -161,7 +173,10 @@ async function insertTitlePage() {
       size: 12,
       color: "#002B49",
     });
-    preparedFor.alignment = Word.Alignment.center;
+    preparedFor.alignment = Word.Alignment.centered;
+
+    // Insert blank paragraph for spacing
+    body.insertParagraph("", Word.InsertLocation.end);
 
     const date = body.insertParagraph("Date: " + new Date().toLocaleDateString(), Word.InsertLocation.end);
     date.font.set({
@@ -171,25 +186,32 @@ async function insertTitlePage() {
     });
     date.alignment = Word.Alignment.left;
 
-    // Insert footer image
-    await insertImage(context, "https://thestateofcybersecurity.github.io/word-addin/assets/greenfooter.png", 600, 100, Word.InsertLocation.end);
+    // Insert footer image in the first page footer
+    const sections = document.sections;
+    sections.load("items");
+    await context.sync();
+
+    const firstPageFooter = sections.items[0].getFooter(Word.HeaderFooterType.firstPage);
+    await insertImage(context, "https://thestateofcybersecurity.github.io/word-addin/assets/greenfooter.png", 600, 100, Word.InsertLocation.replace, firstPageFooter);
+
+    // Insert page break
+    body.insertBreak(Word.BreakType.page, Word.InsertLocation.end);
 
     await context.sync();
   });
 }
 
-async function insertImage(context, url, width, height, location) {
-  // Fetch the image and convert it to base64
+async function insertImage(context, url, width, height, location, target = context.document.body) {
   const base64Image = await fetchImageAsBase64(url);
+  const image = target.insertInlinePictureFromBase64(base64Image, location);
   
-  // Insert the image using Office.js API
-  const image = context.document.body.insertInlinePictureFromBase64(base64Image, location);
-  
-  // Set the image size
-  image.width = width;
-  image.height = height;
+  if (width && height) {
+    image.width = width;
+    image.height = height;
+  }
   
   await context.sync();
+  return image;
 }
 
 async function fetchImageAsBase64(url) {
