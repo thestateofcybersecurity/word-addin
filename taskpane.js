@@ -230,6 +230,30 @@ async function insertTitlePage() {
   });
 }
 
+async function insertTitlePageBasic(context) {
+  const body = context.document.body;
+
+  // Basic image insertion and positioning
+  const mountainImage = body.insertInlinePictureFromBase64(
+    await fetchImageAsBase64("https://thestateofcybersecurity.github.io/word-addin/assets/mountains.png"),
+    Word.InsertLocation.start
+  );
+  mountainImage.width = "100%";
+  mountainImage.height = "100%";
+
+  const logoImage = body.insertInlinePictureFromBase64(
+    await fetchImageAsBase64("https://thestateofcybersecurity.github.io/word-addin/assets/logo.png"),
+    Word.InsertLocation.end
+  );
+  logoImage.width = 150;
+  logoImage.height = 50;
+
+  // Insert other elements (title, prepared for, date) as before
+  // ...
+
+  await context.sync();
+}
+
 async function insertImage(context, url, width, height, location, target = context.document.body) {
   try {
     const base64Image = await fetchImageAsBase64(url);
