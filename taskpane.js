@@ -2,6 +2,7 @@
 
 Office.onReady((info) => {
   if (info.host === Office.HostType.Word) {
+    document.getElementById("insertTitlePageButton").onclick = insertTitlePage;
     document.getElementById("applyStylesButton").onclick = applyCustomStyles;
     document.getElementById("insertHeaderFooterButton").onclick = insertHeaderFooter;
     document.getElementById("generateTOCButton").onclick = insertTableOfContents;
