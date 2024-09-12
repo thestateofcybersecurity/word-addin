@@ -38,20 +38,37 @@ async function applyCustomStyles() {
     await context.sync();
 
     if (paragraphs.items.length > 0) {
-      // Apply heading style to the first paragraph
-      paragraphs.items[0].styleBuiltIn = Word.Style.heading1;
+      // Apply primary header style (Source Sans Pro Black, 40pt, Midnight Blue, ALL CAPS)
+      const headerText = paragraphs.items[0].text.toUpperCase();  // Transform to uppercase
+      paragraphs.items[0].insertText(headerText, Word.InsertLocation.replace);
       paragraphs.items[0].font.set({
         name: "Source Sans Pro Black",
         size: 40,
-        color: "#002B49"  // Midnight Blue
+        color: "#002B49",  // Midnight Blue
+        bold: true
       });
 
-      // Apply body text style to the rest of the paragraphs
-      for (let i = 1; i < paragraphs.items.length; i++) {
+      // Apply sub-header style (Source Sans Pro Bold, 12-14pt, Midnight Blue, ALL CAPS)
+      if (paragraphs.items.length > 1) {
+        const subHeaderText = paragraphs.items[1].text.toUpperCase();  // Transform to uppercase
+        paragraphs.items[1].insertText(subHeaderText, Word.InsertLocation.replace);
+        paragraphs.items[1].font.set({
+          name: "Source Sans Pro Bold",
+          size: 14,
+          color: "#002B49",  // Midnight Blue
+          bold: true,
+          allCaps: true,
+          kerning: 100
+        });
+      }
+
+      // Apply body text style (Montserrat, 10pt, black)
+      for (let i = 2; i < paragraphs.items.length; i++) {
         paragraphs.items[i].font.set({
           name: "Montserrat",
           size: 10,
-          color: "#000000" // Black
+          color: "#000000",  // Black
+          justify: true
         });
       }
     }
