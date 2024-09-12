@@ -142,13 +142,29 @@ async function insertTitlePage() {
     // Clear existing content
     body.clear();
 
-    // Insert mountain image as full page and send to back
+     // Insert mountain image with specific settings
     const mountainImage = await insertImage(context, "https://thestateofcybersecurity.github.io/word-addin/assets/mountains.png", null, null, Word.InsertLocation.start);
-    mountainImage.width = '100%';
-    mountainImage.height = '100%';
-    mountainImage.lockAspectRatio = false;
-    mountainImage.sendToBack();
+    
+    // Set specific positioning and size for the mountain image
+    mountainImage.setPositioning({
+      layoutWrap: Word.ImageLayoutWrap.behind,
+      left: -9.84,
+      leftRelative: Word.ImageRelativeHorizontalPosition.page,
+      top: -0.026,
+      topRelative: Word.ImageRelativeVerticalPosition.paragraph,
+      height: 11.83,
+      width: 23.55,
+      lockAspectRatio: true,
+      allowOverlap: true,
+    });
 
+    // Set scale (we need to do this separately as it's not part of setPositioning)
+    mountainImage.scaleHeight = 360;
+    mountainImage.scaleWidth = 361;
+
+    // Ensure the image doesn't move with text
+    mountainImage.lockPosition = true;
+    
     // Insert company logo centered above the title
     const logoImage = await insertImage(context, "https://thestateofcybersecurity.github.io/word-addin/assets/logo.png", 150, 50, Word.InsertLocation.after);
     logoImage.alignment = Word.Alignment.centered;
