@@ -144,28 +144,31 @@ async function insertTitlePage() {
       body.clear();
 
       // Insert mountain image
-      const mountainParagraph = body.insertParagraph("", Word.InsertLocation.start);
-      const mountainImage = mountainParagraph.insertInlinePictureFromBase64(
+      const mountainImage = body.insertInlinePictureFromBase64(
         await fetchImageAsBase64("https://thestateofcybersecurity.github.io/word-addin/assets/mountains.png"),
-        Word.InsertLocation.replace
+        Word.InsertLocation.start
       );
 
-      // Basic positioning for mountain image
-      mountainImage.width = "100%";
-      mountainImage.height = "100%";
-      mountainParagraph.alignment = Word.Alignment.left;
+      // Position mountain image
+      mountainImage.wrap.allowOverlap = true;
+      mountainImage.wrap.type = Word.WrapType.behind;
+      mountainImage.left = -71.05; // -9.84 inches in points
+      mountainImage.top = -1.872; // -0.026 inches in points
+      mountainImage.width = 851.68; // 23.55 inches in points
+      mountainImage.height = 427.32; // 11.83 inches in points
 
       // Insert company logo
-      const logoParagraph = body.insertParagraph("", Word.InsertLocation.end);
-      const logoImage = logoParagraph.insertInlinePictureFromBase64(
+      const logoImage = body.insertInlinePictureFromBase64(
         await fetchImageAsBase64("https://thestateofcybersecurity.github.io/word-addin/assets/logo.png"),
-        Word.InsertLocation.replace
+        Word.InsertLocation.end
       );
 
-      // Basic positioning for logo
-      logoImage.width = 150;
-      logoImage.height = 50;
-      logoParagraph.alignment = Word.Alignment.center;
+      // Position logo
+      logoImage.wrap.type = Word.WrapType.square;
+      logoImage.left = 112.32; // 1.56 inches in points
+      logoImage.top = 140.4; // 1.95 inches in points
+      logoImage.width = 375.84; // 5.22 inches in points
+      logoImage.height = 143.28; // 1.99 inches in points
 
       // Insert blank paragraph for spacing
       body.insertParagraph("", Word.InsertLocation.end);
@@ -200,18 +203,17 @@ async function insertTitlePage() {
       });
       date.alignment = Word.Alignment.left;
 
-      // Insert footer image in the first page footer
+      // Insert footer image
       const sections = document.sections;
       sections.load("items");
       await context.sync();
 
       const firstSection = sections.items[0];
-      firstSection.differentFirstPage = true;  // Ensure different first page header/footer
+      firstSection.differentFirstPage = true;
       const firstPageFooter = firstSection.getFooter(Word.HeaderFooterType.firstPage);
-      const footerParagraph = firstPageFooter.insertParagraph("", Word.InsertLocation.start);
-      const footerImage = footerParagraph.insertInlinePictureFromBase64(
+      const footerImage = firstPageFooter.insertInlinePictureFromBase64(
         await fetchImageAsBase64("https://thestateofcybersecurity.github.io/word-addin/assets/greenfooter.png"),
-        Word.InsertLocation.replace
+        Word.InsertLocation.start
       );
       footerImage.width = 600;
       footerImage.height = 100;
@@ -222,7 +224,8 @@ async function insertTitlePage() {
       await context.sync();
     } catch (error) {
       console.error("Error in insertTitlePage:", error);
-      // Handle the error appropriately, perhaps show a message to the user
+      // Fallback to basic positioning if advanced features are not available
+      await insertTitlePageBasic(context);
     }
   });
 }
