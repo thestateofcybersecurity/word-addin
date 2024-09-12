@@ -8,6 +8,7 @@ Office.onReady((info) => {
     document.getElementById("generateTOCButton").onclick = insertTableOfContents;
     document.getElementById("importExcelTable").onclick = insertExcelTable;
     document.getElementById("addBiosButton").onclick = addEngagementTeamBios;
+    document.getElementById("insertReportTemplateButton").onclick = insertReportTemplate;
   }
 });
 
@@ -67,143 +68,6 @@ async function applyCustomStyles() {
           color: "#000000"  // Black
         });
       }
-    }
-
-    await context.sync();
-  });
-}
-
-async function insertTitlePage() {
-  await Word.run(async (context) => {
-    const body = context.document.body;
-
-    // Function to insert an image using base64 string
-    async function insertImage(base64String, width, height) {
-      const imageOoxml = `<pkg:package xmlns:pkg="http://schemas.microsoft.com/office/2006/xmlPackage">
-        <pkg:part pkg:name="/word/document.xml" pkg:contentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml">
-          <pkg:xmlData>
-            <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
-              <w:body>
-                <w:p>
-                  <w:r>
-                    <w:drawing>
-                      <wp:inline distT="0" distB="0" distL="0" distR="0" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing">
-                        <wp:extent cx="${width * 9525}" cy="${height * 9525}"/>
-                        <wp:docPr id="1" name="Picture 1"/>
-                        <a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
-                          <a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">
-                            <pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">
-                              <pic:blipFill>
-                                <a:blip r:embed="rId1" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"/>
-                                <a:stretch>
-                                  <a:fillRect/>
-                                </a:stretch>
-                              </pic:blipFill>
-                            </pic:pic>
-                          </a:graphicData>
-                        </a:graphic>
-                      </wp:inline>
-                    </w:drawing>
-                  </w:r>
-                </w:p>
-              </w:body>
-            </w:document>
-          </pkg:xmlData>
-        </pkg:part>
-        <pkg:part pkg:name="/word/media/image1.png" pkg:contentType="image/png">
-          <pkg:binaryData>${base64String}</pkg:binaryData>
-        </pkg:part>
-      </pkg:package>`;
-
-      body.insertOoxml(imageOoxml, Word.InsertLocation.start);
-    }
-
-    // Insert mountain image
-    const mountainImageBase64 = await fetchImageAsBase64("https://thestateofcybersecurity.github.io/word-addin/assets/mountains.png");
-    await insertImage(mountainImageBase64, 600, 400);
-
-    // Insert Richey May logo
-    const logoImageBase64 = await fetchImageAsBase64("https://thestateofcybersecurity.github.io/word-addin/assets/logo.png");
-    await insertImage(logoImageBase64, 150, 50);
-
-    // Insert text for the title page
-    const title = body.insertParagraph("Maturity Assessment", Word.InsertLocation.after);
-    title.font.set({
-      name: "Source Sans Pro Black",
-      size: 40,
-      color: "#002B49",  // Midnight Blue
-      bold: true
-    });
-    title.alignment = Word.Alignment.center;
-
-    const preparedFor = body.insertParagraph("Prepared for:", Word.InsertLocation.after);
-    preparedFor.font.set({
-      name: "Montserrat",
-      size: 12,
-      color: "#002B49",  // Midnight Blue
-    });
-    preparedFor.alignment = Word.Alignment.center;
-
-    const date = body.insertParagraph("DATE", Word.InsertLocation.after);
-    date.font.set({
-      name: "Montserrat",
-      size: 12,
-      color: "#002B49",  // Midnight Blue
-    });
-    date.alignment = Word.Alignment.left;
-
-    const deliveredBy = body.insertParagraph("Delivered By: NAME, TITLE", Word.InsertLocation.after);
-    deliveredBy.font.set({
-      name: "Montserrat",
-      size: 12,
-      color: "#002B49",  // Midnight Blue
-    });
-    deliveredBy.alignment = Word.Alignment.left;
-
-    // Insert footer image
-    const footerImageBase64 = await fetchImageAsBase64("https://thestateofcybersecurity.github.io/word-addin/assets/greenfooter.png");
-    const sections = context.document.sections;
-    sections.load("items");
-    await context.sync();
-
-    if (sections.items.length > 0) {
-      const firstSection = sections.items[0];
-      const footer = firstSection.getFooter(Word.HeaderFooterType.primary);
-      footer.insertOoxml(`<pkg:package xmlns:pkg="http://schemas.microsoft.com/office/2006/xmlPackage">
-        <pkg:part pkg:name="/word/document.xml" pkg:contentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml">
-          <pkg:xmlData>
-            <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
-              <w:body>
-                <w:p>
-                  <w:r>
-                    <w:drawing>
-                      <wp:inline distT="0" distB="0" distL="0" distR="0" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing">
-                        <wp:extent cx="${600 * 9525}" cy="${100 * 9525}"/>
-                        <wp:docPr id="1" name="Picture 1"/>
-                        <a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
-                          <a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">
-                            <pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">
-                              <pic:blipFill>
-                                <a:blip r:embed="rId1" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"/>
-                                <a:stretch>
-                                  <a:fillRect/>
-                                </a:stretch>
-                              </pic:blipFill>
-                            </pic:pic>
-                          </a:graphicData>
-                        </a:graphic>
-                      </wp:inline>
-                    </w:drawing>
-                  </w:r>
-                </w:p>
-              </w:body>
-            </w:document>
-          </pkg:xmlData>
-        </pkg:part>
-        <pkg:part pkg:name="/word/media/image1.png" pkg:contentType="image/png">
-          <pkg:binaryData>${footerImageBase64}</pkg:binaryData>
-        </pkg:part>
-      </pkg:package>`, Word.InsertLocation.start);
     }
 
     await context.sync();
@@ -275,14 +139,134 @@ async function insertExcelTable() {
   // Placeholder function for Excel table import
 }
 
-// Function to add the selected employee bio into the document
+async function insertTitlePage() {
+  await Word.run(async (context) => {
+    const body = context.document.body;
+
+    // Insert company logo
+    await insertImage(context, "https://thestateofcybersecurity.github.io/word-addin/assets/logo.png", 150, 50, Word.InsertLocation.start);
+
+    // Insert title text
+    const title = body.insertParagraph("Maturity Assessment", Word.InsertLocation.end);
+    title.font.set({
+      name: "Source Sans Pro Black",
+      size: 40,
+      color: "#002B49",
+      bold: true
+    });
+    title.alignment = Word.Alignment.center;
+
+    // Insert other title page elements
+    const preparedFor = body.insertParagraph("Prepared for: [Client Name]", Word.InsertLocation.end);
+    preparedFor.font.set({
+      name: "Montserrat",
+      size: 12,
+      color: "#002B49",
+    });
+    preparedFor.alignment = Word.Alignment.center;
+
+    const date = body.insertParagraph("Date: " + new Date().toLocaleDateString(), Word.InsertLocation.end);
+    date.font.set({
+      name: "Montserrat",
+      size: 12,
+      color: "#002B49",
+    });
+    date.alignment = Word.Alignment.left;
+
+    // Insert footer image
+    await insertImage(context, "https://thestateofcybersecurity.github.io/word-addin/assets/greenfooter.png", 600, 100, Word.InsertLocation.end);
+
+    await context.sync();
+  });
+}
+
+async function insertImage(context, url, width, height, location) {
+  const base64Image = await fetchImageAsBase64(url);
+  const imageContentBytes = context.application.createBase64Image(base64Image);
+  context.document.body.insertInlinePictureFromBase64(imageContentBytes, location);
+  const inlinePicture = context.document.body.getLastParagraph().getInlinePictures().getFirst();
+  inlinePicture.width = width;
+  inlinePicture.height = height;
+}
+
+async function insertHeaderFooter() {
+  await Word.run(async (context) => {
+    const sections = context.document.sections;
+    sections.load("items");
+    await context.sync();
+
+    sections.items.forEach((section, index) => {
+      if (index > 0) {  // Skip the first page
+        const footer = section.getFooter(Word.HeaderFooterType.primary);
+
+        // Insert horizontal bar
+        const horizontalLine = footer.insertParagraph("", Word.InsertLocation.start);
+        horizontalLine.font.color = "#6AA339";
+        horizontalLine.font.size = 14;
+        horizontalLine.insertHorizontalLine();
+
+        // Insert footer text
+        const footerText = footer.insertParagraph("Richey May Cyber | Confidential | Page ", Word.InsertLocation.end);
+        footerText.font.color = "#6AA339";
+        footerText.font.size = 10;
+        footerText.alignment = Word.Alignment.right;
+
+        // Insert page number
+        footerText.insertField(Word.FieldType.page, Word.InsertLocation.end);
+      }
+    });
+
+    await context.sync();
+  });
+}
+
+async function insertReportTemplate() {
+  const templateSelect = document.getElementById("templateSelect");
+  const selectedTemplate = templateSelect.value;
+
+  await Word.run(async (context) => {
+    const body = context.document.body;
+
+    switch (selectedTemplate) {
+      case "nistcsf":
+        // Insert NIST CSF template content
+        body.insertText("[NIST CSF Report Template Content]", Word.InsertLocation.end);
+        break;
+      case "iso27001":
+        // Insert ISO 27001 template content
+        body.insertText("[ISO 27001 Report Template Content]", Word.InsertLocation.end);
+        break;
+      // Add more cases for other templates
+    }
+
+    await context.sync();
+  });
+}
+
 async function addEngagementTeamBios() {
   const selectedMember = document.getElementById("teamDropdown").value;
   const bioText = bios[selectedMember];
 
   await Word.run(async (context) => {
     const body = context.document.body;
-    body.insertParagraph(`Bio for ${selectedMember}: ${bioText}`, Word.InsertLocation.end);
+    
+    // Insert bio header
+    const bioHeader = body.insertParagraph(selectedMember, Word.InsertLocation.end);
+    bioHeader.font.set({
+      name: "Source Sans Pro Black",
+      size: 16,
+      color: "#002B49",
+      bold: true
+    });
+
+    // Insert bio text
+    const bioParagraph = body.insertParagraph(bioText, Word.InsertLocation.end);
+    bioParagraph.font.set({
+      name: "Montserrat",
+      size: 11,
+      color: "#000000"
+    });
+
     await context.sync();
   });
 }
