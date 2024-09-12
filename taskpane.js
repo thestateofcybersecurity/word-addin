@@ -81,18 +81,6 @@ async function applyCustomStyles() {
   });
 }
 
-// Helper function to fetch image as base64
-async function fetchImageAsBase64(url) {
-  const response = await fetch(url);
-  const blob = await response.blob();
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result.split(',')[1]);
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
-}
-
 async function insertHeaderFooter() {
   await Word.run(async (context) => {
     const sections = context.document.sections;
@@ -153,6 +141,9 @@ async function insertTitlePage() {
     // Insert company logo
     await insertImage(context, "https://thestateofcybersecurity.github.io/word-addin/assets/logo.png", 150, 50, Word.InsertLocation.start);
 
+    // Insert mountain image
+    await insertImage(context, "https://thestateofcybersecurity.github.io/word-addin/assets/mountains.png", 150, 50, Word.InsertLocation.start);
+    
     // Insert title text
     const title = body.insertParagraph("Maturity Assessment", Word.InsertLocation.end);
     title.font.set({
