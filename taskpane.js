@@ -136,11 +136,13 @@ async function insertTitlePage() {
     });
     title.alignment = Word.Alignment.center;
 
-    body.insertParagraph("Prepared for:", Word.InsertLocation.after).font.set({
+    const preparedFor = body.insertParagraph("Prepared for:", Word.InsertLocation.after);
+    preparedFor.font.set({
       name: "Montserrat",
       size: 12,
       color: "#002B49",  // Midnight Blue
-    }).alignment = Word.Alignment.center;
+    });
+    preparedFor.alignment = Word.Alignment.center;
 
     const date = body.insertParagraph("DATE", Word.InsertLocation.after);
     date.font.set({
