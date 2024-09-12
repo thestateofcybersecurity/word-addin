@@ -165,9 +165,21 @@ async function insertTitlePage() {
     // Ensure the image doesn't move with text
     mountainImage.lockPosition = true;
     
-    // Insert company logo centered above the title
-    const logoImage = await insertImage(context, "https://thestateofcybersecurity.github.io/word-addin/assets/logo.png", 150, 50, Word.InsertLocation.after);
-    logoImage.alignment = Word.Alignment.centered;
+    // Insert company logo with specific settings
+    const logoImage = await insertImage(context, "https://thestateofcybersecurity.github.io/word-addin/assets/logo.png", null, null, Word.InsertLocation.end);
+    
+    logoImage.setPositioning({
+      layoutWrap: Word.ImageLayoutWrap.square,
+      left: 1.56,
+      leftRelative: Word.ImageRelativeHorizontalPosition.margin,
+      top: 1.95,
+      topRelative: Word.ImageRelativeVerticalPosition.paragraph,
+      height: 1.99,
+      width: 5.22,
+      lockAspectRatio: false,
+      allowOverlap: true,
+    });
+    logoImage.lockPosition = true;
 
     // Insert blank paragraph for spacing
     body.insertParagraph("", Word.InsertLocation.end);
