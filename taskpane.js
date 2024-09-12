@@ -77,18 +77,103 @@ async function applyCustomStyles() {
   });
 }
 
-// Function to insert header and footer
+async function insertTitlePage() {
+  await Word.run(async (context) => {
+    const body = context.document.body;
+
+    // Insert the mountain image from URL
+    const mountainImage = body.insertInlinePictureFromUrl("https://thestateofcybersecurity.github.io/word-addin/assets/mountains.png", Word.InsertLocation.start);
+    mountainImage.width = 600;
+    mountainImage.height = 400;
+
+    // Insert Richey May logo image from URL
+    const logoImage = body.insertInlinePictureFromUrl("https://thestateofcybersecurity.github.io/word-addin/assets/logo.png", Word.InsertLocation.after);
+    logoImage.width = 150;
+    logoImage.height = 50;
+
+    // Insert text for the title page
+    const title = body.insertParagraph("Maturity Assessment", Word.InsertLocation.after);
+    title.font.set({
+      name: "Source Sans Pro Black",
+      size: 40,
+      color: "#002B49",  // Midnight Blue
+      bold: true,
+      alignment: Word.Alignment.center
+    });
+
+    body.insertParagraph("Prepared for:", Word.InsertLocation.after).font.set({
+      name: "Montserrat",
+      size: 12,
+      color: "#002B49",  // Midnight Blue
+      alignment: Word.Alignment.center
+    });
+
+    const date = body.insertParagraph("DATE", Word.InsertLocation.after);
+    date.font.set({
+      name: "Montserrat",
+      size: 12,
+      color: "#002B49",  // Midnight Blue
+      alignment: Word.Alignment.left
+    });
+
+    const deliveredBy = body.insertParagraph("Delivered By: NAME, TITLE", Word.InsertLocation.after);
+    deliveredBy.font.set({
+      name: "Montserrat",
+      size: 12,
+      color: "#002B49",  // Midnight Blue
+      alignment: Word.Alignment.left
+    });
+
+    await context.sync();
+
+    // Insert footer image for the first page (green footer)
+    const sections = context.document.sections;
+    sections.load("items");
+    await context.sync();
+
+    if (sections.items.length > 0) {
+      const firstSection = sections.items[0];
+      const footer = firstSection.getFooter(Word.HeaderFooterType.primary);
+
+      // Insert the green footer image from URL
+      const footerImage = footer.insertInlinePictureFromUrl("https://thestateofcybersecurity.github.io/word-addin/assets/greenfooter.png", Word.InsertLocation.start);
+      footerImage.width = 600;
+      footerImage.height = 100;  // Adjust this based on image height
+
+      await context.sync();
+    }
+  });
+}
+
 async function insertHeaderFooter() {
   await Word.run(async (context) => {
     const sections = context.document.sections;
-    sections.load();
+    sections.load("items");
     await context.sync();
 
-    const header = sections.items[0].getHeader(Word.HeaderFooterType.primary);
-    header.insertParagraph("Richey May Confidential", Word.InsertLocation.start);
+    // Apply the footer only on pages after the first
+    sections.items.forEach((section, index) => {
+      if (index > 0) {  // Skip the first page (index 0)
+        const footer = section.getFooter(Word.HeaderFooterType.primary);
 
-    const footer = sections.items[0].getFooter(Word.HeaderFooterType.primary);
-    footer.insertParagraph("Page 1", Word.InsertLocation.start);
+        // Insert horizontal bar and text for footer
+        footer.insertParagraph("______________________________________________________________", Word.InsertLocation.start).font.color = "#6AA339";
+        const richMayText = footer.insertParagraph("Richey May Cyber", Word.InsertLocation.start);
+        const confidentialText = footer.insertParagraph("Confidential", Word.InsertLocation.start);
+        const pageNumberText = footer.insertParagraph("Page | ", Word.InsertLocation.start);
+
+        // Insert page number field
+        pageNumberText.insertField(Word.FieldType.page, true);
+
+        // Style the footer text
+        [richMayText, confidentialText, pageNumberText].forEach((p) => p.font.color = "#6AA339");
+
+        // Align footer text
+        richMayText.alignment = Word.Alignment.left;
+        confidentialText.alignment = Word.Alignment.center;
+        pageNumberText.alignment = Word.Alignment.right;
+      }
+    });
 
     await context.sync();
   });
