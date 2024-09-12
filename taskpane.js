@@ -8,7 +8,7 @@ Office.onReady((info) => {
       { id: "generateTOCButton", handler: insertTableOfContents },
       { id: "importExcelTable", handler: insertExcelTable },
       { id: "addBiosButton", handler: addEngagementTeamBios },
-      { id: "insertReportTemplateButton", handler: insertReportTemplate }
+      //{ id: "insertReportTemplateButton", handler: insertReportTemplate }
     ];
     
     elements.forEach(({ id, handler }) => {
@@ -136,50 +136,71 @@ async function insertExcelTable() {
 
 async function insertTitlePage() {
   await Word.run(async (context) => {
-    const document = context.document;
-    const body = document.body;
+    try {
+      const document = context.document;
+      const body = document.body;
 
-    // Clear existing content
-    body.clear();
+      // Clear existing content
+      body.clear();
 
-     // Insert mountain image with specific settings
-    const mountainImage = await insertImage(context, "https://thestateofcybersecurity.github.io/word-addin/assets/mountains.png", null, null, Word.InsertLocation.start);
-    
-    // Set specific positioning and size for the mountain image
-    mountainImage.setPositioning({
-      layoutWrap: Word.ImageLayoutWrap.behind,
-      left: -9.84,
-      leftRelative: Word.ImageRelativeHorizontalPosition.page,
-      top: -0.026,
-      topRelative: Word.ImageRelativeVerticalPosition.paragraph,
-      height: 11.83,
-      width: 23.55,
-      lockAspectRatio: true,
-      allowOverlap: true,
-    });
+      // Insert mountain image with specific settings
+      const mountainImage = await insertImage(context, "https://thestateofcybersecurity.github.io/word-addin/assets/mountains.png", null, null, Word.InsertLocation.start);
+      
+      // Check if setPositioning method is available
+      if (mountainImage.setPositioning) {
+        mountainImage.setPositioning({
+          layoutWrap: Word.ImageLayoutWrap.behind,
+          left: -9.84,
+          leftRelative: Word.ImageRelativeHorizontalPosition.page,
+          top: -0.026,
+          topRelative: Word.ImageRelativeVerticalPosition.paragraph,
+          height: 11.83,
+          width: 23.55,
+          lockAspectRatio: true,
+          allowOverlap: true,
+        });
+      } else {
+        console.warn("setPositioning method not available for images");
+        // Fallback positioning
+        mountainImage.width = '100%';
+        mountainImage.height = '100%';
+      }
 
-    // Set scale (we need to do this separately as it's not part of setPositioning)
-    mountainImage.scaleHeight = 360;
-    mountainImage.scaleWidth = 361;
+      // Set scale and lock position if available
+      if ('scaleHeight' in mountainImage) {
+        mountainImage.scaleHeight = 360;
+        mountainImage.scaleWidth = 361;
+      }
+      if ('lockPosition' in mountainImage) {
+        mountainImage.lockPosition = true;
+      }
 
-    // Ensure the image doesn't move with text
-    mountainImage.lockPosition = true;
-    
-    // Insert company logo with specific settings
-    const logoImage = await insertImage(context, "https://thestateofcybersecurity.github.io/word-addin/assets/logo.png", null, null, Word.InsertLocation.end);
-    
-    logoImage.setPositioning({
-      layoutWrap: Word.ImageLayoutWrap.square,
-      left: 1.56,
-      leftRelative: Word.ImageRelativeHorizontalPosition.margin,
-      top: 1.95,
-      topRelative: Word.ImageRelativeVerticalPosition.paragraph,
-      height: 1.99,
-      width: 5.22,
-      lockAspectRatio: false,
-      allowOverlap: true,
-    });
-    logoImage.lockPosition = true;
+      // Insert company logo with specific settings
+      const logoImage = await insertImage(context, "https://thestateofcybersecurity.github.io/word-addin/assets/logo.png", null, null, Word.InsertLocation.end);
+      
+      // Check if setPositioning method is available
+      if (logoImage.setPositioning) {
+        logoImage.setPositioning({
+          layoutWrap: Word.ImageLayoutWrap.square,
+          left: 1.56,
+          leftRelative: Word.ImageRelativeHorizontalPosition.margin,
+          top: 1.95,
+          topRelative: Word.ImageRelativeVerticalPosition.paragraph,
+          height: 1.99,
+          width: 5.22,
+          lockAspectRatio: false,
+          allowOverlap: true,
+        });
+      } else {
+        console.warn("setPositioning method not available for images");
+        // Fallback positioning
+        logoImage.width = 150;
+        logoImage.height = 50;
+      }
+
+      if ('lockPosition' in logoImage) {
+        logoImage.lockPosition = true;
+      }
 
     // Insert blank paragraph for spacing
     body.insertParagraph("", Word.InsertLocation.end);
@@ -225,21 +246,31 @@ async function insertTitlePage() {
     // Insert page break
     body.insertBreak(Word.BreakType.page, Word.InsertLocation.end);
 
-    await context.sync();
+      await context.sync();
+    } catch (error) {
+      console.error("Error in insertTitlePage:", error);
+      // Handle the error appropriately
+    }
   });
 }
 
 async function insertImage(context, url, width, height, location, target = context.document.body) {
-  const base64Image = await fetchImageAsBase64(url);
-  const image = target.insertInlinePictureFromBase64(base64Image, location);
-  
-  if (width && height) {
-    image.width = width;
-    image.height = height;
+  try {
+    const base64Image = await fetchImageAsBase64(url);
+    const image = target.insertInlinePictureFromBase64(base64Image, location);
+    
+    if (width && height) {
+      image.width = width;
+      image.height = height;
+    }
+    
+    await context.sync();
+    return image;
+  } catch (error) {
+    console.error("Error inserting image:", error);
+    // Handle the error appropriately
+    return null;
   }
-  
-  await context.sync();
-  return image;
 }
 
 async function fetchImageAsBase64(url) {
