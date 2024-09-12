@@ -77,15 +77,54 @@ async function insertTitlePage() {
   await Word.run(async (context) => {
     const body = context.document.body;
 
-    // Insert the mountain image from URL
-    const mountainImage = body.insertInlinePictureFromUrl("https://thestateofcybersecurity.github.io/word-addin/assets/mountains.png", Word.InsertLocation.start);
-    mountainImage.width = 600;
-    mountainImage.height = 400;
+    // Function to insert an image using base64 string
+    async function insertImage(base64String, width, height) {
+      const imageOoxml = `<pkg:package xmlns:pkg="http://schemas.microsoft.com/office/2006/xmlPackage">
+        <pkg:part pkg:name="/word/document.xml" pkg:contentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml">
+          <pkg:xmlData>
+            <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+              <w:body>
+                <w:p>
+                  <w:r>
+                    <w:drawing>
+                      <wp:inline distT="0" distB="0" distL="0" distR="0" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing">
+                        <wp:extent cx="${width * 9525}" cy="${height * 9525}"/>
+                        <wp:docPr id="1" name="Picture 1"/>
+                        <a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+                          <a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">
+                            <pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">
+                              <pic:blipFill>
+                                <a:blip r:embed="rId1" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"/>
+                                <a:stretch>
+                                  <a:fillRect/>
+                                </a:stretch>
+                              </pic:blipFill>
+                            </pic:pic>
+                          </a:graphicData>
+                        </a:graphic>
+                      </wp:inline>
+                    </w:drawing>
+                  </w:r>
+                </w:p>
+              </w:body>
+            </w:document>
+          </pkg:xmlData>
+        </pkg:part>
+        <pkg:part pkg:name="/word/media/image1.png" pkg:contentType="image/png">
+          <pkg:binaryData>${base64String}</pkg:binaryData>
+        </pkg:part>
+      </pkg:package>`;
 
-    // Insert Richey May logo image from URL
-    const logoImage = body.insertInlinePictureFromUrl("https://thestateofcybersecurity.github.io/word-addin/assets/logo.png", Word.InsertLocation.after);
-    logoImage.width = 150;
-    logoImage.height = 50;
+      body.insertOoxml(imageOoxml, Word.InsertLocation.start);
+    }
+
+    // Insert mountain image
+    const mountainImageBase64 = await fetchImageAsBase64("https://thestateofcybersecurity.github.io/word-addin/assets/mountains.png");
+    await insertImage(mountainImageBase64, 600, 400);
+
+    // Insert Richey May logo
+    const logoImageBase64 = await fetchImageAsBase64("https://thestateofcybersecurity.github.io/word-addin/assets/logo.png");
+    await insertImage(logoImageBase64, 150, 50);
 
     // Insert text for the title page
     const title = body.insertParagraph("Maturity Assessment", Word.InsertLocation.after);
@@ -93,36 +132,34 @@ async function insertTitlePage() {
       name: "Source Sans Pro Black",
       size: 40,
       color: "#002B49",  // Midnight Blue
-      bold: true,
-      alignment: Word.Alignment.center
+      bold: true
     });
+    title.alignment = Word.Alignment.center;
 
     body.insertParagraph("Prepared for:", Word.InsertLocation.after).font.set({
       name: "Montserrat",
       size: 12,
       color: "#002B49",  // Midnight Blue
-      alignment: Word.Alignment.center
-    });
+    }).alignment = Word.Alignment.center;
 
     const date = body.insertParagraph("DATE", Word.InsertLocation.after);
     date.font.set({
       name: "Montserrat",
       size: 12,
       color: "#002B49",  // Midnight Blue
-      alignment: Word.Alignment.left
     });
+    date.alignment = Word.Alignment.left;
 
     const deliveredBy = body.insertParagraph("Delivered By: NAME, TITLE", Word.InsertLocation.after);
     deliveredBy.font.set({
       name: "Montserrat",
       size: 12,
       color: "#002B49",  // Midnight Blue
-      alignment: Word.Alignment.left
     });
+    deliveredBy.alignment = Word.Alignment.left;
 
-    await context.sync();
-
-    // Insert footer image for the first page (green footer)
+    // Insert footer image
+    const footerImageBase64 = await fetchImageAsBase64("https://thestateofcybersecurity.github.io/word-addin/assets/greenfooter.png");
     const sections = context.document.sections;
     sections.load("items");
     await context.sync();
@@ -130,14 +167,56 @@ async function insertTitlePage() {
     if (sections.items.length > 0) {
       const firstSection = sections.items[0];
       const footer = firstSection.getFooter(Word.HeaderFooterType.primary);
-
-      // Insert the green footer image from URL
-      const footerImage = footer.insertInlinePictureFromUrl("https://thestateofcybersecurity.github.io/word-addin/assets/greenfooter.png", Word.InsertLocation.start);
-      footerImage.width = 600;
-      footerImage.height = 100;  // Adjust this based on image height
-
-      await context.sync();
+      footer.insertOoxml(`<pkg:package xmlns:pkg="http://schemas.microsoft.com/office/2006/xmlPackage">
+        <pkg:part pkg:name="/word/document.xml" pkg:contentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml">
+          <pkg:xmlData>
+            <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+              <w:body>
+                <w:p>
+                  <w:r>
+                    <w:drawing>
+                      <wp:inline distT="0" distB="0" distL="0" distR="0" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing">
+                        <wp:extent cx="${600 * 9525}" cy="${100 * 9525}"/>
+                        <wp:docPr id="1" name="Picture 1"/>
+                        <a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+                          <a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">
+                            <pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">
+                              <pic:blipFill>
+                                <a:blip r:embed="rId1" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"/>
+                                <a:stretch>
+                                  <a:fillRect/>
+                                </a:stretch>
+                              </pic:blipFill>
+                            </pic:pic>
+                          </a:graphicData>
+                        </a:graphic>
+                      </wp:inline>
+                    </w:drawing>
+                  </w:r>
+                </w:p>
+              </w:body>
+            </w:document>
+          </pkg:xmlData>
+        </pkg:part>
+        <pkg:part pkg:name="/word/media/image1.png" pkg:contentType="image/png">
+          <pkg:binaryData>${footerImageBase64}</pkg:binaryData>
+        </pkg:part>
+      </pkg:package>`, Word.InsertLocation.start);
     }
+
+    await context.sync();
+  });
+}
+
+// Helper function to fetch image as base64
+async function fetchImageAsBase64(url) {
+  const response = await fetch(url);
+  const blob = await response.blob();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
   });
 }
 
