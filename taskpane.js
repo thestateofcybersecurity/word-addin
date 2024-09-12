@@ -1,17 +1,26 @@
-/* global Office, Word, Excel */
-
 Office.onReady((info) => {
   if (info.host === Office.HostType.Word) {
-    document.getElementById("insertTitlePageButton").onclick = insertTitlePage;
-    document.getElementById("applyStylesButton").onclick = applyCustomStyles;
-    document.getElementById("insertHeaderFooterButton").onclick = insertHeaderFooter;
-    document.getElementById("generateTOCButton").onclick = insertTableOfContents;
-    document.getElementById("importExcelTable").onclick = insertExcelTable;
-    document.getElementById("addBiosButton").onclick = addEngagementTeamBios;
-    document.getElementById("insertReportTemplateButton").onclick = insertReportTemplate;
+    // Ensure all elements exist before attaching event listeners
+    const elements = [
+      { id: "insertTitlePageButton", handler: insertTitlePage },
+      { id: "applyStylesButton", handler: applyCustomStyles },
+      { id: "insertHeaderFooterButton", handler: insertHeaderFooter },
+      { id: "generateTOCButton", handler: insertTableOfContents },
+      { id: "importExcelTable", handler: insertExcelTable },
+      { id: "addBiosButton", handler: addEngagementTeamBios },
+      { id: "insertReportTemplateButton", handler: insertReportTemplate }
+    ];
+    
+    elements.forEach(({ id, handler }) => {
+      const element = document.getElementById(id);
+      if (element) {
+        element.onclick = handler;
+      } else {
+        console.warn(`Element with id "${id}" not found`);
+      }
+    });
   }
 });
-
 // Employee bios data loaded from attached files
 const bios = {
   "Alvin": `Alvin Tugume Cybersecurity Consultant: vCISO Infosec. Engineer Incident Responder Risk Assessor CCSKv4 | CompTIA SEC+ | TPN Certified With 10 years in IT and Cybersecurity Alvin Tugume is a recognized expert in the field. A proud holder of a Bachelor's degree in Cybersecurity. Prior to Richey May Alvin was responsible for the cybersecurity posture of three credit unions and a call center. Responsibilities included maintaining compliance with information security policies, monitoring the security of on-prem and cloud environments, leading incident investigations and response, and more.`,
@@ -179,12 +188,28 @@ async function insertTitlePage() {
 }
 
 async function insertImage(context, url, width, height, location) {
+  // Fetch the image and convert it to base64
   const base64Image = await fetchImageAsBase64(url);
-  const imageContentBytes = context.application.createBase64Image(base64Image);
-  context.document.body.insertInlinePictureFromBase64(imageContentBytes, location);
-  const inlinePicture = context.document.body.getLastParagraph().getInlinePictures().getFirst();
-  inlinePicture.width = width;
-  inlinePicture.height = height;
+  
+  // Insert the image using Office.js API
+  const image = context.document.body.insertInlinePictureFromBase64(base64Image, location);
+  
+  // Set the image size
+  image.width = width;
+  image.height = height;
+  
+  await context.sync();
+}
+
+async function fetchImageAsBase64(url) {
+  const response = await fetch(url);
+  const blob = await response.blob();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
 }
 
 async function insertHeaderFooter() {
