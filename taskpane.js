@@ -143,113 +143,86 @@ async function insertTitlePage() {
       // Clear existing content
       body.clear();
 
-      // Insert mountain image with specific settings
-      const mountainImage = await insertImage(context, "https://thestateofcybersecurity.github.io/word-addin/assets/mountains.png", null, null, Word.InsertLocation.start);
-      
-      // Check if setPositioning method is available
-      if (mountainImage.setPositioning) {
-        mountainImage.setPositioning({
-          layoutWrap: Word.ImageLayoutWrap.behind,
-          left: -9.84,
-          leftRelative: Word.ImageRelativeHorizontalPosition.page,
-          top: -0.026,
-          topRelative: Word.ImageRelativeVerticalPosition.paragraph,
-          height: 11.83,
-          width: 23.55,
-          lockAspectRatio: true,
-          allowOverlap: true,
-        });
-      } else {
-        console.warn("setPositioning method not available for images");
-        // Fallback positioning
-        mountainImage.width = '100%';
-        mountainImage.height = '100%';
-      }
+      // Insert mountain image
+      const mountainParagraph = body.insertParagraph("", Word.InsertLocation.start);
+      const mountainImage = mountainParagraph.insertInlinePictureFromBase64(
+        await fetchImageAsBase64("https://thestateofcybersecurity.github.io/word-addin/assets/mountains.png"),
+        Word.InsertLocation.replace
+      );
 
-      // Set scale and lock position if available
-      if ('scaleHeight' in mountainImage) {
-        mountainImage.scaleHeight = 360;
-        mountainImage.scaleWidth = 361;
-      }
-      if ('lockPosition' in mountainImage) {
-        mountainImage.lockPosition = true;
-      }
+      // Basic positioning for mountain image
+      mountainImage.width = "100%";
+      mountainImage.height = "100%";
+      mountainParagraph.alignment = Word.Alignment.left;
 
-      // Insert company logo with specific settings
-      const logoImage = await insertImage(context, "https://thestateofcybersecurity.github.io/word-addin/assets/logo.png", null, null, Word.InsertLocation.end);
-      
-      // Check if setPositioning method is available
-      if (logoImage.setPositioning) {
-        logoImage.setPositioning({
-          layoutWrap: Word.ImageLayoutWrap.square,
-          left: 1.56,
-          leftRelative: Word.ImageRelativeHorizontalPosition.margin,
-          top: 1.95,
-          topRelative: Word.ImageRelativeVerticalPosition.paragraph,
-          height: 1.99,
-          width: 5.22,
-          lockAspectRatio: false,
-          allowOverlap: true,
-        });
-      } else {
-        console.warn("setPositioning method not available for images");
-        // Fallback positioning
-        logoImage.width = 150;
-        logoImage.height = 50;
-      }
+      // Insert company logo
+      const logoParagraph = body.insertParagraph("", Word.InsertLocation.end);
+      const logoImage = logoParagraph.insertInlinePictureFromBase64(
+        await fetchImageAsBase64("https://thestateofcybersecurity.github.io/word-addin/assets/logo.png"),
+        Word.InsertLocation.replace
+      );
 
-      if ('lockPosition' in logoImage) {
-        logoImage.lockPosition = true;
-      }
+      // Basic positioning for logo
+      logoImage.width = 150;
+      logoImage.height = 50;
+      logoParagraph.alignment = Word.Alignment.center;
 
-    // Insert blank paragraph for spacing
-    body.insertParagraph("", Word.InsertLocation.end);
+      // Insert blank paragraph for spacing
+      body.insertParagraph("", Word.InsertLocation.end);
 
-    // Insert title text
-    const title = body.insertParagraph("Maturity Assessment", Word.InsertLocation.end);
-    title.font.set({
-      name: "Source Sans Pro Black",
-      size: 40,
-      color: "#002B49",
-      bold: true
-    });
-    title.alignment = Word.Alignment.centered;
+      // Insert title text
+      const title = body.insertParagraph("Maturity Assessment", Word.InsertLocation.end);
+      title.font.set({
+        name: "Source Sans Pro Black",
+        size: 40,
+        color: "#002B49",
+        bold: true
+      });
+      title.alignment = Word.Alignment.center;
 
-    // Insert other title page elements
-    const preparedFor = body.insertParagraph("Prepared for: [Client Name]", Word.InsertLocation.end);
-    preparedFor.font.set({
-      name: "Montserrat",
-      size: 12,
-      color: "#002B49",
-    });
-    preparedFor.alignment = Word.Alignment.centered;
+      // Insert other title page elements
+      const preparedFor = body.insertParagraph("Prepared for: [Client Name]", Word.InsertLocation.end);
+      preparedFor.font.set({
+        name: "Montserrat",
+        size: 12,
+        color: "#002B49",
+      });
+      preparedFor.alignment = Word.Alignment.center;
 
-    // Insert blank paragraph for spacing
-    body.insertParagraph("", Word.InsertLocation.end);
+      // Insert blank paragraph for spacing
+      body.insertParagraph("", Word.InsertLocation.end);
 
-    const date = body.insertParagraph("Date: " + new Date().toLocaleDateString(), Word.InsertLocation.end);
-    date.font.set({
-      name: "Montserrat",
-      size: 12,
-      color: "#002B49",
-    });
-    date.alignment = Word.Alignment.left;
+      const date = body.insertParagraph("Date: " + new Date().toLocaleDateString(), Word.InsertLocation.end);
+      date.font.set({
+        name: "Montserrat",
+        size: 12,
+        color: "#002B49",
+      });
+      date.alignment = Word.Alignment.left;
 
-    // Insert footer image in the first page footer
-    const sections = document.sections;
-    sections.load("items");
-    await context.sync();
+      // Insert footer image in the first page footer
+      const sections = document.sections;
+      sections.load("items");
+      await context.sync();
 
-    const firstPageFooter = sections.items[0].getFooter(Word.HeaderFooterType.firstPage);
-    await insertImage(context, "https://thestateofcybersecurity.github.io/word-addin/assets/greenfooter.png", 600, 100, Word.InsertLocation.replace, firstPageFooter);
+      const firstSection = sections.items[0];
+      firstSection.differentFirstPage = true;  // Ensure different first page header/footer
+      const firstPageFooter = firstSection.getFooter(Word.HeaderFooterType.firstPage);
+      const footerParagraph = firstPageFooter.insertParagraph("", Word.InsertLocation.start);
+      const footerImage = footerParagraph.insertInlinePictureFromBase64(
+        await fetchImageAsBase64("https://thestateofcybersecurity.github.io/word-addin/assets/greenfooter.png"),
+        Word.InsertLocation.replace
+      );
+      footerImage.width = 600;
+      footerImage.height = 100;
 
-    // Insert page break
-    body.insertBreak(Word.BreakType.page, Word.InsertLocation.end);
+      // Insert page break
+      body.insertBreak(Word.BreakType.page, Word.InsertLocation.end);
 
       await context.sync();
     } catch (error) {
       console.error("Error in insertTitlePage:", error);
-      // Handle the error appropriately
+      // Handle the error appropriately, perhaps show a message to the user
     }
   });
 }
@@ -274,14 +247,19 @@ async function insertImage(context, url, width, height, location, target = conte
 }
 
 async function fetchImageAsBase64(url) {
-  const response = await fetch(url);
-  const blob = await response.blob();
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result.split(',')[1]);
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
+  try {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result.split(',')[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch (error) {
+    console.error("Error fetching image:", error);
+    throw error;
+  }
 }
 
 async function insertHeaderFooter() {
